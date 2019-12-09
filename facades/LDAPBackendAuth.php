@@ -1,4 +1,7 @@
-<?php namespace KhoaTD\LDAP\Facades;
+<?php
+
+namespace Opentech\LDAP\Facades;
+
 use October\Rain\Support\Facade;
 
 class LDAPBackendAuth extends Facade

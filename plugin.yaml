@@ -1,6 +1,6 @@
 plugin:
     name: 'LDAP'
     description: 'OctoberCMS backend LDAP authentication plugin'
-    author: CmgDev
+    author: Opentech
     icon: oc-icon-adjust
     homepage: ''

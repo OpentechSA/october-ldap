@@ -1,10 +1,19 @@
 {
-  "name": "KhoaTD/LDAP",
+  "name": "Opentech/LDAP",
   "type": "october-plugin",
   "description": "LDAP backend authentication plugin",
-  "keywords": ["backend", "octobercms", "ldap", "authentication"],
+  "keywords": [
+    "backend",
+    "octobercms",
+    "ldap",
+    "authentication"
+  ],
   "license": "MIT",
   "authors": [
+    {
+      "name": "Nelson Otazo",
+      "email": "nelson.otazo@gmail.com"
+    },
     {
       "name": "Khoa Tran",
       "email": "tran.dang.khoa.khtn@gmail.com"

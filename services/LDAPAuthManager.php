@@ -1,4 +1,6 @@
-<?php namespace KhoaTD\LDAP\Services;
+<?php
+
+namespace Opentech\LDAP\Services;
 
 use Backend\Classes\AuthManager;
 use October\Rain\Auth\AuthException;
@@ -47,9 +49,7 @@ class LDAPAuthManager extends AuthManager
             $username = $credentials[$loginName];
             $password = $credentials['password'];
             $user = $this->authenticateWithAD($username, $password);
-
-        }
-        catch (AuthException $ex) {
+        } catch (AuthException $ex) {
             if ($this->useThrottle) {
                 $throttle->addLoginAttempt();
             }
@@ -67,16 +67,15 @@ class LDAPAuthManager extends AuthManager
         return $this->user;
     }
 
-    protected function authenticateWithAD($username, $password) {
+    protected function authenticateWithAD($username, $password)
+    {
         try {
             $loginSuccess = Adldap::auth()->attempt($username, $password);
-            if($loginSuccess) {
+            if ($loginSuccess) {
                 return $this->findUserByLogin($username);
             }
         } catch (\Exception $ex) {
             throw new AuthException('Invalid credential');
         }
     }
-
-
 }

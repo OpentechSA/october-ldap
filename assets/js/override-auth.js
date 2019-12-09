@@ -1,4 +1,4 @@
-$(function() {
-    var authPostURL = '/backend/khoatd/ldap/ldapauth/signin';
+$(function () {
+    var authPostURL = '/backend/opentech/ldap/ldapauth/signin';
     $('form').attr('action', authPostURL);
 });

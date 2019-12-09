@@ -1,4 +1,6 @@
-<?php namespace KhoaTD\LDAP\Controllers;
+<?php
+
+namespace Opentech\LDAP\Controllers;
 
 use ApplicationException;
 use Backend;
@@ -26,8 +28,7 @@ class LDAPAuth extends Backend\Classes\Controller
     {
         try {
             return $this->authenticate();
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             Session::flash('message', $ex->getMessage());
             return Backend::redirect('backend/auth/signin');
         }
@@ -48,10 +49,10 @@ class LDAPAuth extends Backend\Classes\Controller
         $username = post('login');
         $password = post('password');
         $user = BackendAuth::findUserByLogin($username);
-        if(empty($user)) {
+        if (empty($user)) {
             throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
         }
-        if($user->user_type === 'ldap') {
+        if ($user->user_type === 'ldap') {
             $user = LDAPBackendAuth::authenticate([
                 'login' => $username,
                 'password' => $password
@@ -67,5 +68,4 @@ class LDAPAuth extends Backend\Classes\Controller
         AccessLog::add($user);
         return Backend::redirectIntended('backend');
     }
-
 }
