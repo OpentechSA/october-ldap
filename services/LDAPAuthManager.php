@@ -3,12 +3,21 @@
 namespace Opentech\LDAP\Services;
 
 use Backend\Classes\AuthManager;
+use Adldap\Adldap as AdldapAdldap;
 use October\Rain\Auth\AuthException;
-use Adldap\Laravel\Facades\Adldap;
 
 class LDAPAuthManager extends AuthManager
 {
     protected static $instance;
+    public $adldap;
+
+    protected function init()
+    {
+        parent::init();
+        $config = include plugins_path('opentech/ldap/config.php');
+        $this->adldap = new AdldapAdldap(['default' => $config]);
+    }
+
     public function authenticate(array $credentials, $remember = true)
     {
         /*
@@ -37,10 +46,10 @@ class LDAPAuthManager extends AuthManager
         /*
          * If throttling is enabled, check they are not locked out first and foremost.
          */
-        if ($this->useThrottle) {
+        /*if ($this->useThrottle) {
             $throttle = $this->findThrottleByLogin($credentials[$loginName], $this->ipAddress);
             $throttle->check();
-        }
+        }*/
 
         /*
          * Look up the user by authentication credentials.
@@ -51,14 +60,14 @@ class LDAPAuthManager extends AuthManager
             $user = $this->authenticateWithAD($username, $password);
         } catch (AuthException $ex) {
             if ($this->useThrottle) {
-                $throttle->addLoginAttempt();
+                //$throttle->addLoginAttempt();
             }
 
             throw $ex;
         }
 
         if ($this->useThrottle) {
-            $throttle->clearLoginAttempts();
+            // $throttle->clearLoginAttempts();
         }
 
         $user->clearResetPassword();
@@ -70,12 +79,14 @@ class LDAPAuthManager extends AuthManager
     protected function authenticateWithAD($username, $password)
     {
         try {
-            $loginSuccess = Adldap::auth()->attempt($username, $password);
-            if ($loginSuccess) {
+            $provider = $this->adldap->getDefaultProvider();
+
+            if ($provider->auth()->attempt($username, $password)) {
                 return $this->findUserByLogin($username);
             }
+            throw new \Exception('Invalid credentials', 1);
         } catch (\Exception $ex) {
-            throw new AuthException('Invalid credential');
+            throw new AuthException($ex->getMessage());
         }
     }
 }

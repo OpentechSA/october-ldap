@@ -21,7 +21,7 @@
   ],
   "require": {
     "php": ">=5.5.9",
-    "adldap2/adldap2-laravel": "3.0.*"
+    "adldap2/adldap2": "~10.0"
   },
   "minimum-stability": "dev"
 }

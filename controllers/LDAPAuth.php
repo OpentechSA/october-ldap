@@ -2,17 +2,12 @@
 
 namespace Opentech\LDAP\Controllers;
 
-use ApplicationException;
 use Backend;
 use Backend\Models\AccessLog;
 use BackendAuth;
-use LDAPBackendAuth;
-use Flash;
-use Mail;
 use October\Rain\Auth\AuthException;
-use Redirect;
+use Opentech\LDAP\Services\LDAPAuthManager;
 use Session;
-use Adldap\Laravel\Facades\Adldap;
 use System\Classes\UpdateManager;
 use ValidationException;
 use Validator;
@@ -52,8 +47,14 @@ class LDAPAuth extends Backend\Classes\Controller
         if (empty($user)) {
             throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
         }
-        if ($user->user_type === 'ldap') {
-            $user = LDAPBackendAuth::authenticate([
+
+        if ($user->opentech_ldap_user_type === 'ldap') {
+            $manager = LDAPAuthManager::instance();
+            $manager->authenticate([
+                'login' => $username,
+                'password' => $password
+            ]);
+            $user = $manager->authenticate([
                 'login' => $username,
                 'password' => $password
             ], true);

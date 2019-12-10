@@ -2,17 +2,12 @@
 
 namespace Opentech\LDAP;
 
-use Adldap\Laravel\AdldapServiceProvider;
-use Adldap\Laravel\Facades\Adldap;
 use App;
-use Backend\Controllers\Users;
-use Opentech\LDAP\Facades\LDAPBackendAuth;
-use Opentech\LDAP\Services\LDAPAuthManager;
-use Illuminate\Foundation\AliasLoader;
-use October\Rain\Support\Facades\Flash;
-use System\Classes\PluginBase;
 use Event;
 use Session;
+use System\Classes\PluginBase;
+use Backend\Controllers\Users;
+use October\Rain\Support\Facades\Flash;
 
 class Plugin extends PluginBase
 {
@@ -20,13 +15,6 @@ class Plugin extends PluginBase
 
     public function boot()
     {
-        App::register(AdldapServiceProvider::class);
-        AliasLoader::getInstance()->alias('Adldap', Adldap::class);
-        AliasLoader::getInstance()->alias('LDAPBackendAuth', LDAPBackendAuth::class);
-        App::singleton('backend.ldap_auth', function () {
-            return LDAPAuthManager::instance();
-        });
-
         Event::listen('backend.auth.extendSigninView', function ($controller) {
             $this->hookSigninForm($controller);
         });
