@@ -33,7 +33,6 @@ class LDAPAuthManager extends AuthManager
         if (empty($credentials['password'])) {
             throw new AuthException('The password attribute is required.');
         }
-
         /*
          * If the fallback 'login' was provided and did not match the necessary
          * login name, swap it over
@@ -46,10 +45,17 @@ class LDAPAuthManager extends AuthManager
         /*
          * If throttling is enabled, check they are not locked out first and foremost.
          */
-        /*if ($this->useThrottle) {
-            $throttle = $this->findThrottleByLogin($credentials[$loginName], $this->ipAddress);
-            $throttle->check();
-        }*/
+        if ($this->useThrottle) {
+            try {
+                $throttle = $this->findThrottleByLogin($credentials[$loginName], $this->ipAddress);
+            } catch (AuthException $e) {
+                $throttle = null;
+            }
+
+            if ($throttle) {
+                $throttle->check();
+            }
+        }
 
         /*
          * Look up the user by authentication credentials.
@@ -57,17 +63,18 @@ class LDAPAuthManager extends AuthManager
         try {
             $username = $credentials[$loginName];
             $password = $credentials['password'];
+
             $user = $this->authenticateWithAD($username, $password);
         } catch (AuthException $ex) {
-            if ($this->useThrottle) {
-                //$throttle->addLoginAttempt();
+            if ($this->useThrottle && $throttle) {
+                $throttle->addLoginAttempt();
             }
 
             throw $ex;
         }
 
-        if ($this->useThrottle) {
-            // $throttle->clearLoginAttempts();
+        if ($this->useThrottle && $throttle) {
+            $throttle->clearLoginAttempts();
         }
 
         $user->clearResetPassword();
@@ -81,8 +88,27 @@ class LDAPAuthManager extends AuthManager
         try {
             $provider = $this->adldap->getDefaultProvider();
 
+            $adUser = $provider->search()->find($username);
+
+            traceLog($adUser ? $adUser->getAttribute('memberof') : 'nada');
+
             if ($provider->auth()->attempt($username, $password)) {
-                return $this->findUserByLogin($username);
+                $user = $this->findUserByLogin($username);
+
+                if (!$user) {
+                    $user = self::register([
+                        'login' => $username,
+                        'password' => $password,
+                        'password_confirmation' => $password,
+                        'email' => $username . '@regional.com.py',
+                        'opentech_ldap_user_type' => 'ldap',
+                    ], true);
+
+                    $user->role_id = 4;
+                    $user->save();
+                }
+
+                return $user;
             }
             throw new \Exception('Invalid credentials', 1);
         } catch (\Exception $ex) {

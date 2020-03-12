@@ -44,21 +44,18 @@ class LDAPAuth extends Backend\Classes\Controller
         $username = post('login');
         $password = post('password');
         $user = BackendAuth::findUserByLogin($username);
-        if (empty($user)) {
-            throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
-        }
 
-        if ($user->opentech_ldap_user_type === 'ldap') {
+        if (!$user || $user->opentech_ldap_user_type === 'ldap') {
             $manager = LDAPAuthManager::instance();
-            $manager->authenticate([
-                'login' => $username,
-                'password' => $password
-            ]);
             $user = $manager->authenticate([
                 'login' => $username,
                 'password' => $password
             ], true);
         } else {
+            if (empty($user)) {
+                throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
+            }
+
             $user = BackendAuth::authenticate([
                 'login' => $username,
                 'password' => $password
