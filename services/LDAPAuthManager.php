@@ -1,12 +1,23 @@
-<?php namespace KhoaTD\LDAP\Services;
+<?php
+
+namespace Opentech\LDAP\Services;
 
 use Backend\Classes\AuthManager;
+use Adldap\Adldap as AdldapAdldap;
 use October\Rain\Auth\AuthException;
-use Adldap\Laravel\Facades\Adldap;
 
 class LDAPAuthManager extends AuthManager
 {
     protected static $instance;
+    public $adldap;
+
+    protected function init()
+    {
+        parent::init();
+        $config = include plugins_path('opentech/ldap/config.php');
+        $this->adldap = new AdldapAdldap(['default' => $config]);
+    }
+
     public function authenticate(array $credentials, $remember = true)
     {
         /*
@@ -22,7 +33,6 @@ class LDAPAuthManager extends AuthManager
         if (empty($credentials['password'])) {
             throw new AuthException('The password attribute is required.');
         }
-
         /*
          * If the fallback 'login' was provided and did not match the necessary
          * login name, swap it over
@@ -36,8 +46,15 @@ class LDAPAuthManager extends AuthManager
          * If throttling is enabled, check they are not locked out first and foremost.
          */
         if ($this->useThrottle) {
-            $throttle = $this->findThrottleByLogin($credentials[$loginName], $this->ipAddress);
-            $throttle->check();
+            try {
+                $throttle = $this->findThrottleByLogin($credentials[$loginName], $this->ipAddress);
+            } catch (AuthException $e) {
+                $throttle = null;
+            }
+
+            if ($throttle) {
+                $throttle->check();
+            }
         }
 
         /*
@@ -46,18 +63,17 @@ class LDAPAuthManager extends AuthManager
         try {
             $username = $credentials[$loginName];
             $password = $credentials['password'];
-            $user = $this->authenticateWithAD($username, $password);
 
-        }
-        catch (AuthException $ex) {
-            if ($this->useThrottle) {
+            $user = $this->authenticateWithAD($username, $password);
+        } catch (AuthException $ex) {
+            if ($this->useThrottle && $throttle) {
                 $throttle->addLoginAttempt();
             }
 
             throw $ex;
         }
 
-        if ($this->useThrottle) {
+        if ($this->useThrottle && $throttle) {
             $throttle->clearLoginAttempts();
         }
 
@@ -67,16 +83,36 @@ class LDAPAuthManager extends AuthManager
         return $this->user;
     }
 
-    protected function authenticateWithAD($username, $password) {
+    protected function authenticateWithAD($username, $password)
+    {
         try {
-            $loginSuccess = Adldap::auth()->attempt($username, $password);
-            if($loginSuccess) {
-                return $this->findUserByLogin($username);
+            $provider = $this->adldap->getDefaultProvider();
+
+            $adUser = $provider->search()->find($username);
+
+            traceLog($adUser ? $adUser->getAttribute('memberof') : 'nada');
+
+            if ($provider->auth()->attempt($username, $password)) {
+                $user = $this->findUserByLogin($username);
+
+                if (!$user) {
+                    $user = self::register([
+                        'login' => $username,
+                        'password' => $password,
+                        'password_confirmation' => $password,
+                        'email' => $username . '@regional.com.py',
+                        'opentech_ldap_user_type' => 'ldap',
+                    ], true);
+
+                    $user->role_id = 4;
+                    $user->save();
+                }
+
+                return $user;
             }
+            throw new \Exception('Invalid credentials', 1);
         } catch (\Exception $ex) {
-            throw new AuthException('Invalid credential');
+            throw new AuthException($ex->getMessage());
         }
     }
-
-
 }

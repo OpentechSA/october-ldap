@@ -1,16 +1,13 @@
-<?php namespace KhoaTD\LDAP\Controllers;
+<?php
 
-use ApplicationException;
+namespace Opentech\LDAP\Controllers;
+
 use Backend;
 use Backend\Models\AccessLog;
 use BackendAuth;
-use LDAPBackendAuth;
-use Flash;
-use Mail;
 use October\Rain\Auth\AuthException;
-use Redirect;
+use Opentech\LDAP\Services\LDAPAuthManager;
 use Session;
-use Adldap\Laravel\Facades\Adldap;
 use System\Classes\UpdateManager;
 use ValidationException;
 use Validator;
@@ -26,8 +23,7 @@ class LDAPAuth extends Backend\Classes\Controller
     {
         try {
             return $this->authenticate();
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             Session::flash('message', $ex->getMessage());
             return Backend::redirect('backend/auth/signin');
         }
@@ -48,15 +44,18 @@ class LDAPAuth extends Backend\Classes\Controller
         $username = post('login');
         $password = post('password');
         $user = BackendAuth::findUserByLogin($username);
-        if(empty($user)) {
-            throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
-        }
-        if($user->user_type === 'ldap') {
-            $user = LDAPBackendAuth::authenticate([
+
+        if (!$user || $user->opentech_ldap_user_type === 'ldap') {
+            $manager = LDAPAuthManager::instance();
+            $user = $manager->authenticate([
                 'login' => $username,
                 'password' => $password
             ], true);
         } else {
+            if (empty($user)) {
+                throw new AuthException(sprintf('User "%s" is not granted to access backend. Please contact your administrator', $username));
+            }
+
             $user = BackendAuth::authenticate([
                 'login' => $username,
                 'password' => $password
@@ -67,5 +66,4 @@ class LDAPAuth extends Backend\Classes\Controller
         AccessLog::add($user);
         return Backend::redirectIntended('backend');
     }
-
 }
