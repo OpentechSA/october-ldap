@@ -7,11 +7,27 @@ use Event;
 use Session;
 use System\Classes\PluginBase;
 use Backend\Controllers\Users;
+use System\Classes\SettingsManager;
 use October\Rain\Support\Facades\Flash;
 
 class Plugin extends PluginBase
 {
     public $elevated = true;
+
+    public function registerSettings()
+    {
+        return [
+            'settings' => [
+                'label'       => 'LDAP Settings',
+                'description' => 'Manage LDAP based settings.',
+                'category'    => SettingsManager::CATEGORY_USERS,
+                'icon'        => 'icon-cog',
+                'class'       => Models\Settings::class,
+                'keywords'    => 'security ldap users',
+                'permissions' => ['opentech.ldap.access_settings'],
+            ]
+        ];
+    }
 
     public function boot()
     {

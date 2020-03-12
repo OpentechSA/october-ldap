@@ -5,6 +5,7 @@ namespace Opentech\LDAP\Services;
 use Backend\Classes\AuthManager;
 use Adldap\Adldap as AdldapAdldap;
 use October\Rain\Auth\AuthException;
+use Opentech\LDAP\Models\Settings;
 
 class LDAPAuthManager extends AuthManager
 {
@@ -91,7 +92,7 @@ class LDAPAuthManager extends AuthManager
             $adUser = $provider->search()->find($username);
 
             traceLog($adUser ? $adUser->getAttribute('memberof') : 'nada');
-
+            traceLog('authenticating with ' . $username . ' and ' . $password);
             if ($provider->auth()->attempt($username, $password)) {
                 $user = $this->findUserByLogin($username);
 
@@ -103,16 +104,28 @@ class LDAPAuthManager extends AuthManager
                         'email' => $username . '@regional.com.py',
                         'opentech_ldap_user_type' => 'ldap',
                     ], true);
-
-                    $user->role_id = 4;
-                    $user->save();
                 }
+
+                $user->role_id = $this->getUserRole($adUser->getAttribute('memberof'));
+                $user->save();
 
                 return $user;
             }
             throw new \Exception('Invalid credentials', 1);
         } catch (\Exception $ex) {
             throw new AuthException($ex->getMessage());
+        }
+    }
+
+    protected function getUserRole($memberOf)
+    {
+        $memberOf = collect(explode(',', $memberOf));
+        $rules = Settings::get('role_rules', []);
+
+        foreach ($rules as $rule) {
+            if ($memberOf->search($rule['memberof'])) {
+                return $rule['role_id'];
+            }
         }
     }
 }
