@@ -1,0 +1,29 @@
+secondaryTabs:
+    defaultTab: 'Conexión LDAP'
+    fields:
+        adldap_hosts:
+            label: 'Hosts'
+            span: auto
+        adldap_port:
+            label: 'Port'
+            span: auto
+            default: 389
+        adldap_base_dn:
+            label: 'Base DN'
+        adldap_username:
+            label: Username
+            span: auto
+        adldap_password:
+            label: Password
+            span: auto
+        role_rules:
+            type: repeater
+            tab: 'Asignación de roles'
+            form:
+                fields:
+                    memberof:
+                        label: 'Cadena en memberof'
+                    role_id:
+                        label: 'Role correspondiente'
+                        type: dropdown
+                        placeholder: '-- seleccione un rol --'
