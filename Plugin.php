@@ -63,7 +63,7 @@ class Plugin extends PluginBase
         $widget->addFields([
             'opentech_ldap_user_type' => [
                 'label'   => 'User type',
-                'comment' => '(LDAP user if you want to connect with LDAP, CMS user if you want the user is managed inside the CMS)',
+                'readOnly' => true,
                 'type'    => 'dropdown',
                 'options' => [
                     'ldap' => 'LDAP user',
