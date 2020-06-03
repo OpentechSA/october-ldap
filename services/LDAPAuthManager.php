@@ -87,13 +87,10 @@ class LDAPAuthManager extends AuthManager
     protected function authenticateWithAD($username, $password)
     {
         try {
-            $provider = $this->adldap->getDefaultProvider();
+            $provider = $this->adldap->getDefaultProvider()->connect();
 
-            $adUser = $provider->search()->find($username);
-
-            traceLog($adUser ? $adUser->getAttribute('memberof') : 'nada');
-            traceLog('authenticating with ' . $username . ' and ' . $password);
             if ($provider->auth()->attempt($username, $password)) {
+                $adUser = $provider->search()->find($username);
                 $user = $this->findUserByLogin($username);
 
                 if (!$user) {
@@ -106,7 +103,7 @@ class LDAPAuthManager extends AuthManager
                     ], true);
                 }
 
-                $user->role_id = $this->getUserRole($adUser->getAttribute('memberof'));
+                $user->role_id = $this->getUserRole($adUser->getAttribute('memberof')[0]);
                 $user->save();
 
                 return $user;
