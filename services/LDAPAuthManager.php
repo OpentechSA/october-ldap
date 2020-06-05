@@ -4,8 +4,8 @@ namespace Opentech\LDAP\Services;
 
 use Backend\Classes\AuthManager;
 use Adldap\Adldap as AdldapAdldap;
-use October\Rain\Auth\AuthException;
 use Opentech\LDAP\Models\Settings;
+use October\Rain\Auth\AuthException;
 
 class LDAPAuthManager extends AuthManager
 {
@@ -88,9 +88,11 @@ class LDAPAuthManager extends AuthManager
     {
         try {
             $provider = $this->adldap->getDefaultProvider()->connect();
+            $search = $provider->search();
 
-            if ($provider->auth()->attempt($username, $password)) {
-                $adUser = $provider->search()->find($username);
+            $adUser = $search->findByOrFail('samaccountname', $username);
+
+            if ($provider->auth()->attempt($adUser->distinguishedname[0], $password)) {
                 $user = $this->findUserByLogin($username);
 
                 if (!$user) {
