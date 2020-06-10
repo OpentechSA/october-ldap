@@ -13,7 +13,7 @@ return [
     'schema'           => env('ADLDAP_SCHEMA', \Adldap\Schemas\ActiveDirectory::class),
     'account_prefix'   => env('ADLDAP_ACCOUNT_PREFIX', ''), // 'ACME-'
     'account_suffix'   => env('ADLDAP_ACCOUNT_SUFFIX', ''), // '@acme.org'
-    'follow_referrals' => env('ADLDAP_FOLLOW_REFERRALS', false),
+    'follow_referrals' => env('ADLDAP_FOLLOW_REFERRALS', true),
     'use_ssl'          => env('ADLDAP_USE_SSL', false),
     'use_tls'          => env('ADLDAP_USE_TLS', false),
     'version'          => env('ADLDAP_VERSION', 3),

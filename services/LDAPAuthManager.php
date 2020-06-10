@@ -105,7 +105,7 @@ class LDAPAuthManager extends AuthManager
                     ], true);
                 }
 
-                $user->role_id = $this->getUserRole($adUser->getAttribute('memberof')[0]);
+                $user->role_id = $this->getUserRole($adUser->getAttribute('memberof'));
                 $user->save();
 
                 return $user;
@@ -118,12 +118,15 @@ class LDAPAuthManager extends AuthManager
 
     protected function getUserRole($memberOf)
     {
-        $memberOf = collect(explode(',', $memberOf));
         $rules = Settings::get('role_rules', []);
 
-        foreach ($rules as $rule) {
-            if ($memberOf->search($rule['memberof'])) {
-                return $rule['role_id'];
+        foreach ($memberOf as $scope) {
+            $scope = collect(explode(',', $scope));
+
+            foreach ($rules as $rule) {
+                if ($scope->search($rule['memberof'])) {
+                    return $rule['role_id'];
+                }
             }
         }
     }
