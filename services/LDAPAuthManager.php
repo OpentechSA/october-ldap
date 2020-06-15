@@ -15,7 +15,7 @@ class LDAPAuthManager extends AuthManager
     protected function init()
     {
         parent::init();
-        $config = include plugins_path('opentech/ldap/config.php');
+        $config = \Config::get('opentech.ldap::connection');
         $this->adldap = new AdldapAdldap(['default' => $config]);
     }
 
