@@ -124,7 +124,7 @@ class LDAPAuthManager extends AuthManager
             $scope = collect(explode(',', $scope));
 
             foreach ($rules as $rule) {
-                if ($scope->search($rule['memberof'])) {
+                if ($scope->search($rule['memberof']) !== false) {
                     return $rule['role_id'];
                 }
             }
