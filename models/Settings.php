@@ -18,4 +18,18 @@ class Settings extends Model
     {
         return \Backend\Models\UserRole::pluck('name', 'id');
     }
+
+    /**
+     * Protects the password from being reset to null.
+     */
+    public function setValueAttribute($value)
+    {
+        $json = json_decode($value);
+        if ($this->exists && empty($json->adldap_password)) {
+            $json->adldap_password = $this->value['adldap_password'];
+            $this->attributes['value'] = json_encode($json);
+        } else {
+            $this->attributes['value'] = $value;
+        }
+    }
 }
