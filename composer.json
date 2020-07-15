@@ -1,5 +1,5 @@
 {
-  "name": "Opentech/LDAP",
+  "name": "opentech/oc-ldap-plugin",
   "type": "october-plugin",
   "description": "LDAP backend authentication plugin",
   "keywords": [
@@ -20,8 +20,6 @@
     }
   ],
   "require": {
-    "php": ">=5.5.9",
     "adldap2/adldap2": "~10.0"
-  },
-  "minimum-stability": "dev"
+  }
 }
