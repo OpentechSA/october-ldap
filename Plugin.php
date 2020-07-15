@@ -65,6 +65,7 @@ class Plugin extends PluginBase
                 'label'   => 'User type',
                 'readOnly' => true,
                 'type'    => 'dropdown',
+                'default' => 'cms',
                 'options' => [
                     'ldap' => 'LDAP user',
                     'cms' => 'CMS user',
